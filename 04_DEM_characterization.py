@@ -211,21 +211,33 @@ def main():
     """
     Main function to run the characterization workflow.
     """
-    
+
     # --- 1. Configuration ---
-    PREPROCESSED_DEMS_DIR = Path(r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Code/preprocessed_dems")
-    
+    BASE_DIR = Path(r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Code/preprocessed_dems")
+
+    # --- 🆕 TEST PATCH TOGGLE 🆕 ---
+    USE_TEST_PATCH = False  # Set to True to use small patches
+
+    if USE_TEST_PATCH:
+        DEMS_DIR = BASE_DIR / "patches"
+        OUTPUT_DIR = Path("dem_characterization_patch")
+        print("🔍 RUNNING IN TEST PATCH MODE")
+    else:
+        DEMS_DIR = BASE_DIR
+        OUTPUT_DIR = Path("dem_characterization")
+        print("🗺️ RUNNING ON FULL DATASET")
+
+    # Define paths based on selected directory
     DEM_PATHS = {
-        '2018': PREPROCESSED_DEMS_DIR / "2018_0p5m_upper_rg_dem_larger_roi_harmonized.tif",
-        '2023': PREPROCESSED_DEMS_DIR / "GadValleyRG_50cmDEM_2023_harmonized.TIF",
-        '2024': PREPROCESSED_DEMS_DIR / "GadValleyRG_50cmDEM_2024_harmonized.TIF",
-        '2025': PREPROCESSED_DEMS_DIR / "GadValleyRG_50cmDEM_2025_harmonized.TIF"
+        '2018': DEMS_DIR / "2018_0p5m_upper_rg_dem_larger_roi_harmonized.tif",
+        '2023': DEMS_DIR / "GadValleyRG_50cmDEM_2023_harmonized.TIF",
+        '2024': DEMS_DIR / "GadValleyRG_50cmDEM_2024_harmonized.TIF",
+        '2025': DEMS_DIR / "GadValleyRG_50cmDEM_2025_harmonized.TIF"
     }
-    
-    OUTPUT_DIR = Path("dem_characterization")
+
     OUTPUT_DIR.mkdir(exist_ok=True)
     print(f"Output directory set to: {OUTPUT_DIR.absolute()}\n")
-    
+
     PIXEL_SIZE = 0.5  # 0.5m pixel size is constant
     
     # --- 2. Process DEMs in Parallel ---

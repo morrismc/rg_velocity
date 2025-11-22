@@ -672,37 +672,51 @@ class MultiTemporalDisplacementAnalyzer:
 # EXAMPLE USAGE
 # ======================
 if __name__ == "__main__":
-    
+
     # --- User Inputs ---
     stable_file = Path(r"M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\shapefiles\stable_2.shp")
-    
-    # Define your DEM epochs
+
+    # --- 🆕 TEST PATCH TOGGLE 🆕 ---
+    USE_TEST_PATCH = False  # Set to True to use small patches, False for full DEMs
+
+    # Base directory for DEMs
+    base_dem_dir = Path(r"M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\Code\preprocessed_dems")
+
+    # Logic to switch directories
+    if USE_TEST_PATCH:
+        dem_dir = base_dem_dir / "patches"
+        print("\n🔍 RUNNING IN TEST PATCH MODE")
+        print(f"   Reading DEMs from: {dem_dir}")
+    else:
+        dem_dir = base_dem_dir
+        print("\n🗺️ RUNNING ON FULL DATASET")
+
+    # Define your DEM epochs (paths built dynamically based on mode)
     # ** THESE MUST POINT TO THE HARMONIZED OUTPUTS **
     dem_epochs = [
-        ('2018', r"M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\Code\preprocessed_dems\2018_0p5m_upper_rg_dem_larger_roi_harmonized.tif", '2018-09-01'),
-        ('2023', r"M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\Code\preprocessed_dems\GadValleyRG_50cmDEM_2023_harmonized.TIF", '2023-09-01'),
-        ('2024', r"M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\Code\preprocessed_dems\GadValleyRG_50cmDEM_2024_harmonized.TIF", '2024-09-01'),
-        ('2025', r"M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\Code\preprocessed_dems\GadValleyRG_50cmDEM_2025_harmonized.TIF", '2025-09-01'),
+        ('2018', dem_dir / "2018_0p5m_upper_rg_dem_larger_roi_harmonized.tif", '2018-09-01'),
+        ('2023', dem_dir / "GadValleyRG_50cmDEM_2023_harmonized.TIF", '2023-09-01'),
+        ('2024', dem_dir / "GadValleyRG_50cmDEM_2024_harmonized.TIF", '2024-09-01'),
+        ('2025', dem_dir / "GadValleyRG_50cmDEM_2025_harmonized.TIF", '2025-09-01'),
     ]
-    
-    # Analysis parameters
-   
-   
-    
+
     # Analysis parameters
     COREG_METHOD = 'nuth_kaab'
     FILTER_OUTLIERS = True
     DETECT_SNOW = True
     APPLY_BIAS_CORRECTION = True
-    
+
     try:
-        output_dir = Path("results_multitemporal_corrected")
+        # Update output directory name based on mode
+        out_folder_name = "results_multitemporal_patch" if USE_TEST_PATCH else "results_multitemporal_corrected"
+        output_dir = Path(out_folder_name)
         output_dir.mkdir(exist_ok=True)
         print(f"Output directory: {output_dir.absolute()}\n")
-        
+
         print("="*60)
         print("MULTI-TEMPORAL VERTICAL DISPLACEMENT ANALYSIS")
-        print("Using ORIGINAL 2018/2023, HARMONIZED 2024 only")
+        mode_text = "TEST PATCH" if USE_TEST_PATCH else "FULL DATASET"
+        print(f"Mode: {mode_text}")
         print("="*60)
         analyzer = MultiTemporalDisplacementAnalyzer(stable_area_shapefile=stable_file)
         

@@ -217,6 +217,8 @@ Magnitude_3D(x, y) = √[dx² + dy² + dH_eulerian²]
 
 ### Prerequisites
 
+> **⚠️ WINDOWS USERS:** The instructions below use Linux/bash commands. For detailed **Windows-specific** installation instructions, including manual COSI-Corr download, see **[WINDOWS_SETUP.md](WINDOWS_SETUP.md)**.
+
 #### Environment Setup
 
 1. **Install Mamba** (faster than conda):
@@ -226,8 +228,14 @@ Magnitude_3D(x, y) = √[dx² + dy² + dH_eulerian²]
 
 2. **Create the environment**:
    ```bash
+   # Linux/Mac:
    mamba create -n rock_glacier_env python=3.9 \
        xdem gdal rasterio geopandas numpy scipy matplotlib \
+       scikit-image pandas jupyterlab -c conda-forge
+
+   # Windows (use ^ for line continuation):
+   mamba create -n rock_glacier_env python=3.9 ^
+       xdem gdal rasterio geopandas numpy scipy matplotlib ^
        scikit-image pandas jupyterlab -c conda-forge
 
    mamba activate rock_glacier_env
@@ -235,8 +243,11 @@ Magnitude_3D(x, y) = √[dx² + dy² + dH_eulerian²]
 
 3. **Clone COSI-Corr** (external tool):
    ```bash
+   # Linux/Mac:
    cd "M:/My Drive/Rock Glaciers/Tools"
    git clone https://github.com/SaifAati/Geospatial-COSICorr3D.git
+
+   # Windows: Download ZIP from GitHub (see WINDOWS_SETUP.md)
    ```
 
 4. **Verify Installation**:

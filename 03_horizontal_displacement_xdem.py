@@ -56,6 +56,42 @@ STEP_SIZE = 4
 
 # ================= LOGIC =================
 
+def verify_cosicorr_installation():
+    """
+    Verify COSI-Corr is installed correctly with helpful error messages.
+    Returns True if OK, raises error with guidance if not.
+    """
+    cosicorr_path = Path(COSICORR_SCRIPT)
+
+    if not cosicorr_path.exists():
+        error_msg = f"""
+❌ COSI-Corr script not found at:
+   {COSICORR_SCRIPT}
+
+📋 Windows Installation Steps:
+   1. Download from: https://github.com/SaifAati/Geospatial-COSICorr3D
+   2. Click green "Code" button → "Download ZIP"
+   3. Extract to: M:\\My Drive\\Rock Glaciers\\Tools\\
+   4. Rename folder from "Geospatial-COSICorr3D-main" to "Geospatial-COSICorr3D"
+
+📁 Expected path structure:
+   M:\\My Drive\\Rock Glaciers\\Tools\\
+   └── Geospatial-COSICorr3D\\
+       └── geoCosiCorr3D\\
+           └── scripts\\
+               └── correlation.py  ← This file
+
+🔍 Current path breakdown:
+   Parent dir exists: {cosicorr_path.parent.exists()}
+   Grand-parent exists: {cosicorr_path.parent.parent.exists()}
+
+💡 See WINDOWS_SETUP.md for detailed installation instructions.
+"""
+        raise FileNotFoundError(error_msg)
+
+    print(f"✓ COSI-Corr found at: {cosicorr_path}")
+    return True
+
 def prepare_inputs(ref_path, tar_path, output_dir):
     """Prepares input files, cropping them if a patch is defined."""
     if not USE_TEST_PATCH:
@@ -90,6 +126,9 @@ def run_process():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     print(f"--- COSI-CORR with XDEM (Test Mode: {USE_TEST_PATCH}) ---")
+
+    # Verify COSI-Corr installation before proceeding
+    verify_cosicorr_installation()
 
     try:
         # 1. Prepare Files (Clip if needed)

@@ -23,13 +23,20 @@ from pathlib import Path
 import rasterio
 from rasterio.mask import mask
 import geopandas as gpd
+import numpy as np
 
 # ================= CONFIGURATION =================
 
-# Input Hillshades (Harmonized from preprocessing step)
-# NOTE: Use HILLSHADES not DEMs for best feature tracking
-IMG_REF = r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Rasters/2018_LIDAR/2018_0p5m_hs_harmonized.tif"
-IMG_TARGET = r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Rasters/2023_lidar/2023_0p5m_hs_harmonized.tif"
+# Input Images (Harmonized DEMs or Hillshades from preprocessing step)
+# NOTE: Hillshades provide best feature tracking for COSI-Corr
+# TIP: If you only have DEMs, this script will auto-generate hillshades for you!
+#
+# Option 1: Point to hillshades if you have them:
+# IMG_REF = r"M:/My Drive/Rock Glaciers/.../2018_0p5m_hs_harmonized.tif"
+#
+# Option 2: Point to DEMs - hillshades will be auto-generated:
+IMG_REF = r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Code/preprocessed_dems/2018_0p5m_upper_rg_dem_larger_roi_harmonized.tif"
+IMG_TARGET = r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Code/preprocessed_dems/GadValleyRG_50cmDEM_2023_harmonized.TIF"
 
 # Test Patch Settings
 USE_TEST_PATCH = True
@@ -43,7 +50,8 @@ PATCH_SHAPEFILE = r"M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\sh
 
 # Output & Tools
 OUTPUT_DIR = Path("results_horizontal_cosicorr")
-COSICORR_SCRIPT = r"M:/My Drive/Rock Glaciers/Tools/Geospatial-COSICorr3D/geoCosiCorr3D/scripts/correlation.py"
+# UPDATED: Correct path based on actual repository structure (scripts/ not geoCosiCorr3D/scripts/)
+COSICORR_SCRIPT = r"M:/My Drive/Rock Glaciers/Tools/Geospatial-COSICorr3D/scripts/correlation.py"
 
 # COSI-Corr Parameters (Tuning)
 # Window Size: Area to search for features (64px * 0.5m = 32m window)
@@ -92,6 +100,122 @@ def verify_cosicorr_installation():
 
     print(f"✓ COSI-Corr found at: {cosicorr_path}")
     return True
+
+def generate_hillshade_from_dem(dem_path, output_path=None, azimuth=315, altitude=45):
+    """
+    Generate a hillshade from a DEM using simple gradient method.
+
+    Parameters:
+    -----------
+    dem_path : str or Path
+        Path to input DEM
+    output_path : str or Path, optional
+        Path to save hillshade. If None, creates alongside DEM with _hillshade.tif suffix
+    azimuth : float
+        Sun azimuth angle in degrees (0-360, 315 = NW)
+    altitude : float
+        Sun altitude angle in degrees (0-90, 45 = mid-elevation)
+
+    Returns:
+    --------
+    Path to generated hillshade
+    """
+    dem_path = Path(dem_path)
+
+    if output_path is None:
+        output_path = dem_path.parent / (dem_path.stem + "_hillshade.tif")
+    else:
+        output_path = Path(output_path)
+
+    print(f"  🌄 Generating hillshade from {dem_path.name}...")
+
+    with rasterio.open(dem_path) as src:
+        dem = src.read(1, masked=True)
+        transform = src.transform
+        profile = src.profile.copy()
+
+        # Get pixel size
+        pixel_size = abs(transform[0])  # Assumes square pixels
+
+        # Calculate gradients
+        # Use np.gradient which handles edges better
+        dy, dx = np.gradient(dem.filled(np.nan), pixel_size)
+
+        # Calculate slope and aspect
+        slope = np.arctan(np.sqrt(dx**2 + dy**2))
+        aspect = np.arctan2(-dy, dx)  # Note: -dy because raster y increases downward
+
+        # Convert sun position to radians
+        azimuth_rad = np.deg2rad(azimuth)
+        altitude_rad = np.deg2rad(altitude)
+
+        # Calculate hillshade (0-1 range)
+        # Formula: cos(zenith) * cos(slope) + sin(zenith) * sin(slope) * cos(azimuth - aspect)
+        zenith = np.pi/2 - altitude_rad
+        hillshade = (np.cos(zenith) * np.cos(slope) +
+                    np.sin(zenith) * np.sin(slope) * np.cos(azimuth_rad - aspect))
+
+        # Scale to 0-255 for 8-bit output
+        hillshade = np.clip(hillshade * 255, 0, 255).astype(np.uint8)
+
+        # Update profile for 8-bit output
+        profile.update(dtype=rasterio.uint8, count=1, nodata=0)
+
+        # Save
+        with rasterio.open(output_path, 'w', **profile) as dst:
+            dst.write(hillshade, 1)
+
+    print(f"     ✅ Hillshade saved: {output_path.name}")
+    return output_path
+
+def ensure_hillshade_exists(img_path, output_dir):
+    """
+    Check if hillshade exists, generate if not.
+    Returns path to hillshade (either existing or newly created).
+
+    Parameters:
+    -----------
+    img_path : str or Path
+        Path to input image (could be DEM or hillshade)
+    output_dir : Path
+        Directory to save generated hillshade
+
+    Returns:
+    --------
+    Path to hillshade
+    """
+    img_path = Path(img_path)
+
+    # Check if input is already a hillshade
+    if '_hs' in img_path.stem.lower() or 'hillshade' in img_path.stem.lower():
+        if img_path.exists():
+            print(f"  ✓ Using existing hillshade: {img_path.name}")
+            return str(img_path)
+        else:
+            raise FileNotFoundError(f"Hillshade not found: {img_path}")
+
+    # Input is a DEM - check if corresponding hillshade exists
+    # Try several naming conventions
+    possible_hillshades = [
+        img_path.parent / (img_path.stem + "_hillshade.tif"),
+        img_path.parent / (img_path.stem.replace("_dem", "_hs") + ".tif"),
+        img_path.parent / (img_path.stem + "_hs.tif"),
+    ]
+
+    for hs_path in possible_hillshades:
+        if hs_path.exists():
+            print(f"  ✓ Found existing hillshade: {hs_path.name}")
+            return str(hs_path)
+
+    # No hillshade found - generate it
+    print(f"  ⚠️ No hillshade found for {img_path.name}")
+
+    if not img_path.exists():
+        raise FileNotFoundError(f"DEM not found: {img_path}")
+
+    # Generate in output directory to keep things organized
+    output_path = output_dir / (img_path.stem + "_hillshade.tif")
+    return str(generate_hillshade_from_dem(img_path, output_path))
 
 def prepare_inputs(ref_path, tar_path, output_dir):
     """Prepares input files, cropping them if a patch is defined."""
@@ -166,8 +290,13 @@ def run_process():
     verify_cosicorr_installation()
 
     try:
+        # 0. Ensure hillshades exist (generate from DEMs if needed)
+        print("\n📊 Checking for hillshades...")
+        ref_hillshade = ensure_hillshade_exists(IMG_REF, OUTPUT_DIR)
+        tar_hillshade = ensure_hillshade_exists(IMG_TARGET, OUTPUT_DIR)
+
         # 1. Prepare Files (Clip if needed)
-        ref_input, tar_input = prepare_inputs(IMG_REF, IMG_TARGET, OUTPUT_DIR)
+        ref_input, tar_input = prepare_inputs(ref_hillshade, tar_hillshade, OUTPUT_DIR)
 
         # 2. Build Command
         # We use sys.executable to force using the CURRENT active python environment

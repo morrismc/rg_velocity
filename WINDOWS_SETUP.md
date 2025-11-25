@@ -154,7 +154,7 @@ dir "M:\My Drive\Rock Glaciers\Tools\Geospatial-COSICorr3D\geoCosiCorr3D\scripts
 
 The scripts are pre-configured with example paths. You need to update them to match your system.
 
-#### In `03_horizontal_displacement_xdem.py`:
+#### In `01_horizontal_displacement_cosicorr.py`:
 
 Find this line (~Line 37):
 ```python
@@ -207,7 +207,7 @@ cd "M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\Code\rg_velocity"
 
 Run the DEM characterization (doesn't require COSI-Corr):
 ```cmd
-python 04_DEM_characterization.py
+python 03_dem_quality_assessment.py
 ```
 
 **Expected behavior:**
@@ -346,7 +346,7 @@ FileNotFoundError: [Errno 2] No such file or directory: 'M:/My Drive/.../correla
 
 **Fix:**
 - Ensure path exactly matches: `M:\My Drive\Rock Glaciers\Tools\Geospatial-COSICorr3D\geoCosiCorr3D\scripts\correlation.py`
-- Update `COSICORR_SCRIPT` variable in `03_horizontal_displacement_xdem.py` to match actual location
+- Update `COSICORR_SCRIPT` variable in `01_horizontal_displacement_cosicorr.py` to match actual location
 
 ---
 
@@ -405,10 +405,10 @@ cd "M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\Code\rg_velocity"
 python 00_generate_test_patches.py
 
 # Run correlation
-python 03_horizontal_displacement_xdem.py
+python 01_horizontal_displacement_cosicorr.py
 
 # Run 3D synthesis
-python 05_3d_synthesis_xdem.py
+python 02_3d_synthesis_backwarp.py
 ```
 
 ### Check Environment
@@ -474,7 +474,7 @@ mamba activate rock_glacier_env
 cd "M:\My Drive\Rock Glaciers\Field_Sites\Snowbird\Gad_valley\Code\rg_velocity"
 
 :: 4. Run analysis
-python 03_horizontal_displacement_xdem.py
+python 01_horizontal_displacement_cosicorr.py
 
 :: 5. When done
 conda deactivate

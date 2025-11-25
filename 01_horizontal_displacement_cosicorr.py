@@ -1,7 +1,7 @@
 """
-03_horizontal_displacement_xdem.py
-==================================
-Step 3: Horizontal Displacement using COSI-Corr.
+01_horizontal_displacement_cosicorr.py
+======================================
+Step 1: Horizontal Displacement using COSI-Corr.
 Uses rasterio for robust clipping (more reliable than geoutils).
 
 This script wraps the COSI-Corr frequency correlation tool to calculate
@@ -9,12 +9,14 @@ horizontal (X, Y) displacement vectors between two epochs.
 
 Prerequisites:
     - COSI-Corr repository cloned to Tools directory
-    - Harmonized hillshades (from preprocessing step)
+    - Harmonized DEMs or hillshades (from preprocessing step)
     - Test patches generated (from 00_generate_test_patches.py) if using test mode
     - 'rock_glacier_env' conda environment activated
 
 Usage:
-    python 03_horizontal_displacement_xdem.py
+    python 01_horizontal_displacement_cosicorr.py
+
+Note: This script can auto-generate hillshades from DEMs if needed.
 """
 
 import sys

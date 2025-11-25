@@ -28,7 +28,7 @@ warnings.filterwarnings('ignore', category=rasterio.errors.NotGeoreferencedWarni
 # CONFIGURATION
 # ============================================================
 
-# Use the EXACT DEMs from your 'vertical_displacement_analysis_FIXED.py'
+# Use the EXACT DEMs from your '04_vertical_displacement_xdem.py'
 DEM_2018_ORIG = r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Rasters/2018_LIDAR/2018_0p5m_upper_rg_dem_larger_roi.tif"
 DEM_2023_ORIG = r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Rasters/2023_lidar/2023_0p5m_4_imcorr_upper_rg_larger_roi.tif"
 DEM_2024_HARM = r"M:/My Drive/Rock Glaciers/Field_Sites/Snowbird/Gad_valley/Code/preprocessed_dems/2024_0p5_4_imcorr__upper_rg_larger_roi_harmonized.tif"

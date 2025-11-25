@@ -1,8 +1,8 @@
 """
-05_3d_synthesis_xdem.py
-=======================
-Step 5: 3D Vector Synthesis & Vertical Flow Correction.
-Automatically aligns DEMs to the displacement grid from Step 3.
+02_3d_synthesis_backwarp.py
+===========================
+Step 2: 3D Vector Synthesis & Vertical Flow Correction.
+Automatically aligns DEMs to the displacement grid from Step 1.
 
 This script implements the "warping" methodology to separate true vertical
 surface change (melt/inflation) from apparent elevation changes caused by
@@ -16,11 +16,11 @@ Theory:
     - This is the "gold standard" for rock glacier deformation analysis
 
 Prerequisites:
-    - Completed Step 3 (horizontal displacement)
+    - Completed Step 1 (horizontal displacement from COSI-Corr)
     - Harmonized DEMs (elevation, not hillshades)
 
 Usage:
-    python 05_3d_synthesis_xdem.py
+    python 02_3d_synthesis_backwarp.py
 """
 
 import numpy as np

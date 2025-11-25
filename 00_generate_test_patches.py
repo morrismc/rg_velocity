@@ -197,7 +197,7 @@ def generate_patches():
     if success_count > 0:
         print("\n✅ Next steps:")
         print("   1. Set USE_TEST_PATCH = True in analysis scripts")
-        print("   2. Run: python 03_horizontal_displacement_xdem.py")
+        print("   2. Run: python 01_horizontal_displacement_cosicorr.py")
     else:
         print("\n⚠️ No files were successfully processed. Check:")
         print("   1. Input files exist in preprocessed_dems/")

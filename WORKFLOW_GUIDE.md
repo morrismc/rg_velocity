@@ -35,11 +35,11 @@ rg_velocity/
 ├── WORKFLOW_GUIDE.md                          # This file
 │
 ├── 00_generate_test_patches.py                # Utility: Crop DEMs to test patch
-├── preprocess_dems_snowbird.py                # Step 1: DEM harmonization
-├── 04_DEM_characterization.py                 # Step 2: Quality assessment
-├── 03_horizontal_displacement_xdem.py         # Step 3: COSI-Corr wrapper
-├── 05_3d_synthesis_xdem.py                    # Step 5: Warping & 3D vectors
-├── vertical_displacement_analysis_FIXED.py    # Alternative: Vertical-only analysis
+├── preprocess_dems_snowbird.py                # Preprocessing: DEM harmonization
+├── 01_horizontal_displacement_cosicorr.py     # Step 1: Horizontal displacement (COSI-Corr)
+├── 02_3d_synthesis_backwarp.py                # Step 2: 3D synthesis with back-warping
+├── 03_dem_quality_assessment.py               # Step 3: DEM quality assessment
+├── 04_vertical_displacement_xdem.py           # Step 4: Alternative vertical-only analysis
 │
 ├── 01_DEM_Diagnostics.py                      # Diagnostic: DEM quality checks
 ├── 02_Stable_Area_Bias_Diagnostic.py          # Diagnostic: Bias analysis
@@ -354,9 +354,9 @@ python preprocess_dems_snowbird.py
 
 ---
 
-### Step 2: DEM Quality Assessment
+### Step 3: DEM Quality Assessment
 
-**Script:** `04_DEM_characterization.py`
+**Script:** `03_dem_quality_assessment.py`
 
 **Purpose:** Quantify data quality before deformation analysis.
 
@@ -385,7 +385,7 @@ roughness = focal_statistics(DEM, window=3x3, statistic='std')
 
 **Run:**
 ```bash
-python 04_DEM_characterization.py
+python 03_dem_quality_assessment.py
 ```
 
 **Toggle Test Patch:**
@@ -411,9 +411,9 @@ USE_TEST_PATCH = True  # In script
 
 ---
 
-### Step 3: Horizontal Displacement (COSI-Corr)
+### Step 1: Horizontal Displacement (COSI-Corr)
 
-**Script:** `03_horizontal_displacement_xdem.py`
+**Script:** `01_horizontal_displacement_cosicorr.py`
 
 **Purpose:** Calculate horizontal (dx, dy) displacement field using image correlation.
 
@@ -464,7 +464,7 @@ COSI-Corr uses phase correlation in Fourier space:
 
 **Run:**
 ```bash
-python 03_horizontal_displacement_xdem.py
+python 01_horizontal_displacement_cosicorr.py
 ```
 
 **Configuration:**
@@ -506,9 +506,9 @@ results_horizontal_cosicorr/
 
 ---
 
-### Step 5: 3D Synthesis & Warping
+### Step 2: 3D Synthesis & Warping
 
-**Script:** `05_3d_synthesis_xdem.py`
+**Script:** `02_3d_synthesis_backwarp.py`
 
 **Purpose:** Combine horizontal displacement with elevation data to derive true vertical change.
 
@@ -516,7 +516,7 @@ results_horizontal_cosicorr/
 
 ```
 Input:
-  ├─ Horizontal displacement (dx, dy) from Step 3
+  ├─ Horizontal displacement (dx, dy) from Step 1
   ├─ Reference DEM (t₁)
   └─ Target DEM (t₂)
 
@@ -585,7 +585,7 @@ topographic_correction = dH_eulerian - dH_lagrangian
 
 **Run:**
 ```bash
-python 05_3d_synthesis_xdem.py
+python 02_3d_synthesis_backwarp.py
 ```
 
 **Outputs:**
@@ -1044,7 +1044,7 @@ print(f"DEM: res={dem_res}, bounds={dem_bounds}")
 
 **Filter Invalid Displacements:**
 ```python
-# In 05_3d_synthesis_xdem.py, add:
+# In 02_3d_synthesis_backwarp.py, add:
 dx[np.isnan(dx)] = 0
 dy[np.isnan(dy)] = 0
 dx[np.abs(dx) > 20] = 0  # Flag unrealistic displacements
@@ -1328,10 +1328,10 @@ Check the inline comments in each script for parameter explanations.
 ☐ Preprocess DEMs (preprocess_dems_snowbird.py)
 ☐ Check stable area statistics (< 0.1m bias)
 ☐ Characterize DEM quality (04_DEM_characterization.py)
-☐ Run correlation on test patch (03_horizontal_displacement_xdem.py)
+☐ Run correlation on test patch (01_horizontal_displacement_cosicorr.py)
 ☐ Check SNR (> 0.85 median)
 ☐ Tune WINDOW_SIZE if needed
-☐ Run 3D synthesis on test patch (05_3d_synthesis_xdem.py)
+☐ Run 3D synthesis on test patch (02_3d_synthesis_backwarp.py)
 ☐ Verify results make physical sense
 ☐ Switch to full dataset (USE_TEST_PATCH = False)
 ☐ Re-run Steps 3 & 5
@@ -1348,14 +1348,14 @@ mamba activate rock_glacier_env
 
 # Quick Test (Patch)
 python 00_generate_test_patches.py
-python 03_horizontal_displacement_xdem.py  # USE_TEST_PATCH = True
-python 05_3d_synthesis_xdem.py
+python 01_horizontal_displacement_cosicorr.py  # USE_TEST_PATCH = True
+python 02_3d_synthesis_backwarp.py
 
 # Full Processing
 python preprocess_dems_snowbird.py
-python 04_DEM_characterization.py
-python 03_horizontal_displacement_xdem.py  # USE_TEST_PATCH = False
-python 05_3d_synthesis_xdem.py
+python 03_dem_quality_assessment.py
+python 01_horizontal_displacement_cosicorr.py  # USE_TEST_PATCH = False
+python 02_3d_synthesis_backwarp.py
 
 # Quality Control
 python 02_Stable_Area_Bias_Diagnostic.py

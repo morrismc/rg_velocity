@@ -1,14 +1,22 @@
 """
-CORRECTED: Multi-Temporal Vertical Displacement Analysis
-=========================================================
+04_vertical_displacement_xdem.py
+=================================
+Step 4: Multi-Temporal Vertical Displacement Analysis (Alternative Method).
 
-Critical fix: Use ORIGINAL 2018 & 2023 (already matched), 
+This script provides an alternative approach to vertical displacement analysis
+using xdem's built-in coregistration methods (Nuth-Kaab, ICP) without
+the Lagrangian back-warping approach of Step 2.
+
+Critical fix: Use ORIGINAL 2018 & 2023 (already matched),
              HARMONIZED 2024 only (to match their grid)
 
 This avoids unnecessary resampling of 2018 and 2023 which may have
 introduced artifacts in the previous approach.
 
-(v3: Added robust statistical filter for bias correction and plt.show())
+Usage:
+    python 04_vertical_displacement_xdem.py
+
+Note: For the "gold standard" 3D approach with back-warping, use 02_3d_synthesis_backwarp.py instead.
 """
 
 import numpy as np

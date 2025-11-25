@@ -1,6 +1,7 @@
 """
-04_DEM_Characterization_Parallel.py
-====================================
+03_dem_quality_assessment.py
+============================
+Step 3: DEM Quality Assessment & Characterization.
 
 This script generates and compares key topographic metrics for the full
 time series of DEMs (2018, 2023, 2024, 2025).
@@ -20,6 +21,9 @@ It produces four main outputs:
 3.  A distribution plot ('dem_roughness_distributions.png')
     comparing the PDF and CDF of roughness for all DEMs.
 4.  All plots are also shown in the IDE.
+
+Usage:
+    python 03_dem_quality_assessment.py
 """
 
 import numpy as np

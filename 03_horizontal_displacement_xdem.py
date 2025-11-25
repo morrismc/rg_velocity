@@ -2,7 +2,7 @@
 03_horizontal_displacement_xdem.py
 ==================================
 Step 3: Horizontal Displacement using COSI-Corr.
-Uses xdem/geoutils for efficient pre-processing (clipping).
+Uses rasterio for robust clipping (more reliable than geoutils).
 
 This script wraps the COSI-Corr frequency correlation tool to calculate
 horizontal (X, Y) displacement vectors between two epochs.
@@ -20,7 +20,8 @@ Usage:
 import sys
 import subprocess
 from pathlib import Path
-import geoutils as gu  # geoutils is the base library for xdem
+import rasterio
+from rasterio.mask import mask
 import geopandas as gpd
 
 # ================= CONFIGURATION =================
@@ -101,22 +102,56 @@ def prepare_inputs(ref_path, tar_path, output_dir):
     if not Path(PATCH_SHAPEFILE).exists():
         raise FileNotFoundError(f"Patch shapefile not found: {PATCH_SHAPEFILE}")
 
-    # Load inputs using geoutils (lazy loading)
-    ref = gu.Raster(ref_path)
-    tar = gu.Raster(tar_path)
-    crop_geom = gu.Vector(PATCH_SHAPEFILE)
+    # Load shapefile
+    shapefile_gdf = gpd.read_file(PATCH_SHAPEFILE)
+    print(f"     Shapefile CRS: {shapefile_gdf.crs}")
 
-    # Crop both (inplace=False to return new objects)
-    # This automatically handles the bounding box of your shapefile
-    ref_crop = ref.crop(crop_geom)
-    tar_crop = tar.crop(crop_geom)
-
-    # Save temporary clips for COSI-Corr to read
+    # Define output paths
     ref_out = output_dir / "temp_ref_clip.tif"
     tar_out = output_dir / "temp_tar_clip.tif"
 
-    ref_crop.save(ref_out)
-    tar_crop.save(tar_out)
+    # Crop reference image
+    print(f"     Cropping {Path(ref_path).name}...")
+    with rasterio.open(ref_path) as src:
+        # Reproject shapefile to match raster CRS if needed
+        if shapefile_gdf.crs != src.crs:
+            print(f"     Reprojecting shapefile to {src.crs}")
+            shapefile_gdf = shapefile_gdf.to_crs(src.crs)
+
+        # Crop
+        out_image, out_transform = mask(src, shapefile_gdf.geometry.values, crop=True)
+        out_meta = src.meta.copy()
+        out_meta.update({
+            "height": out_image.shape[1],
+            "width": out_image.shape[2],
+            "transform": out_transform
+        })
+
+        # Save
+        with rasterio.open(ref_out, "w", **out_meta) as dest:
+            dest.write(out_image)
+
+        print(f"     ✓ Reference: {out_image.shape[1]}×{out_image.shape[2]} px")
+
+    # Crop target image
+    print(f"     Cropping {Path(tar_path).name}...")
+    with rasterio.open(tar_path) as src:
+        # Use same shapefile (already reprojected if needed)
+        if shapefile_gdf.crs != src.crs:
+            shapefile_gdf = shapefile_gdf.to_crs(src.crs)
+
+        out_image, out_transform = mask(src, shapefile_gdf.geometry.values, crop=True)
+        out_meta = src.meta.copy()
+        out_meta.update({
+            "height": out_image.shape[1],
+            "width": out_image.shape[2],
+            "transform": out_transform
+        })
+
+        with rasterio.open(tar_out, "w", **out_meta) as dest:
+            dest.write(out_image)
+
+        print(f"     ✓ Target: {out_image.shape[1]}×{out_image.shape[2]} px")
 
     print(f"     Created temps: {ref_out.name}, {tar_out.name}")
     return str(ref_out), str(tar_out)

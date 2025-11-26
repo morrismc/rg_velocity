@@ -241,18 +241,28 @@ Magnitude_3D(x, y) = √[dx² + dy² + dH_eulerian²]
    mamba activate rock_glacier_env
    ```
 
-3. **Clone COSI-Corr** (external tool):
+3. **Install COSI-Corr** (external tool):
    ```bash
-   # Linux/Mac:
+   # Step 3a: Clone the repository
    cd "M:/My Drive/Rock Glaciers/Tools"
    git clone https://github.com/SaifAati/Geospatial-COSICorr3D.git
 
    # Windows: Download ZIP from GitHub (see WINDOWS_SETUP.md)
+
+   # Step 3b: Install as Python package (REQUIRED!)
+   cd Geospatial-COSICorr3D
+   pip install -e .
    ```
+
+   **Critical:** The `pip install -e .` step is required. The correlation.py script needs `geoCosiCorr3D` to be importable as a Python module.
 
 4. **Verify Installation**:
    ```bash
+   # Check Python packages
    python -c "import xdem; import rasterio; import geopandas; print('✓ All packages loaded')"
+
+   # Check COSI-Corr module
+   python -c "import geoCosiCorr3D; print('✓ COSI-Corr module installed')"
    ```
 
 ---

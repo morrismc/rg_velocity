@@ -133,24 +133,77 @@ git clone https://github.com/SaifAati/Geospatial-COSICorr3D.git
 
 ---
 
-### Step 7: Verify COSI-Corr Installation
+### Step 7: Install COSI-Corr as a Python Package
 
-Check that the correlation script exists:
+**CRITICAL STEP:** After downloading COSI-Corr, you must install it as a Python package!
 
+The `correlation.py` script requires `geoCosiCorr3D` to be installed in your environment, not just downloaded.
+
+#### Installation Steps:
+
+1. **Activate your environment** (if not already active):
+   ```cmd
+   mamba activate rock_glacier_env
+   ```
+
+2. **Navigate to the COSI-Corr directory**:
+   ```cmd
+   cd "M:\My Drive\Rock Glaciers\Tools\Geospatial-COSICorr3D"
+   ```
+
+3. **Install the package**:
+   ```cmd
+   pip install -e .
+   ```
+
+   The `-e` flag installs in "editable" mode, which is useful if you update COSI-Corr later.
+
+   **Expected output:**
+   ```
+   Obtaining file:///M:/My Drive/Rock Glaciers/Tools/Geospatial-COSICorr3D
+   Installing collected packages: geoCosiCorr3D
+   Successfully installed geoCosiCorr3D-2.5.3
+   ```
+
+4. **Verify the installation**:
+   ```cmd
+   python -c "import geoCosiCorr3D; print('✓ COSI-Corr installed successfully')"
+   ```
+
+   **Expected output:** `✓ COSI-Corr installed successfully`
+
+**If you get ModuleNotFoundError:**
+- Make sure you're in the correct directory (`Geospatial-COSICorr3D`)
+- Check that `setup.py` exists in that directory
+- Ensure `rock_glacier_env` is activated
+
+---
+
+### Step 8: Verify Installation
+
+Check that both the files AND the Python module are accessible:
+
+#### Check 1: File exists
 ```cmd
-dir "M:\My Drive\Rock Glaciers\Tools\Geospatial-COSICorr3D\geoCosiCorr3D\scripts\correlation.py"
+dir "M:\My Drive\Rock Glaciers\Tools\Geospatial-COSICorr3D\scripts\correlation.py"
 ```
 
 **Expected output:** File details (size, date, etc.)
 
-**If "File Not Found":**
-- Double-check the extraction location
-- Verify the folder wasn't renamed incorrectly
-- Make sure you extracted the **inner** folder (Geospatial-COSICorr3D)
+#### Check 2: Module is importable
+```cmd
+python -c "from geoCosiCorr3D.geoCore.constants import SOFTWARE; print(f'✓ COSI-Corr module loaded: {SOFTWARE}')"
+```
+
+**Expected output:** `✓ COSI-Corr module loaded: geoCosiCorr3D`
+
+**If either check fails:**
+- For Check 1: Verify extraction location and folder naming
+- For Check 2: Repeat Step 7 (pip install -e .)
 
 ---
 
-### Step 8: Update Script Paths
+### Step 9: Update Script Paths
 
 The scripts are pre-configured with example paths. You need to update them to match your system.
 

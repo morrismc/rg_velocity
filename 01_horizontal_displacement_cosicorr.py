@@ -88,9 +88,8 @@ def verify_cosicorr_installation():
 📁 Expected path structure:
    M:\\My Drive\\Rock Glaciers\\Tools\\
    └── Geospatial-COSICorr3D\\
-       └── geoCosiCorr3D\\
-           └── scripts\\
-               └── correlation.py  ← This file
+       └── scripts\\
+           └── correlation.py  ← This file
 
 🔍 Current path breakdown:
    Parent dir exists: {cosicorr_path.parent.exists()}
@@ -100,7 +99,38 @@ def verify_cosicorr_installation():
 """
         raise FileNotFoundError(error_msg)
 
-    print(f"✓ COSI-Corr found at: {cosicorr_path}")
+    # Check 2: Python module is installed
+    try:
+        import geoCosiCorr3D
+        print(f"✓ COSI-Corr script found at: {cosicorr_path}")
+        print(f"✓ COSI-Corr module installed: {geoCosiCorr3D.__version__ if hasattr(geoCosiCorr3D, '__version__') else 'version unknown'}")
+    except ImportError as e:
+        error_msg = f"""
+❌ COSI-Corr module not installed!
+
+The correlation.py script was found, but the geoCosiCorr3D Python module is not installed.
+
+🔧 Fix this by installing COSI-Corr as a Python package:
+
+   1. Open Anaconda Prompt
+   2. Activate your environment:
+      mamba activate rock_glacier_env
+
+   3. Navigate to COSI-Corr directory:
+      cd "M:\\My Drive\\Rock Glaciers\\Tools\\Geospatial-COSICorr3D"
+
+   4. Install the package:
+      pip install -e .
+
+   5. Verify installation:
+      python -c "import geoCosiCorr3D; print('✓ Success!')"
+
+📚 For detailed instructions, see WINDOWS_SETUP.md Step 7.
+
+Original error: {e}
+"""
+        raise ImportError(error_msg)
+
     return True
 
 def generate_hillshade_from_dem(dem_path, output_path=None, azimuth=315, altitude=45):
